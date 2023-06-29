@@ -11,16 +11,17 @@ As accelerated empirical advances in the last two decades establish clearly func
 ---
 
 ## TAM
-Proof-of-concept study making the case for TAM.
+Proof-of-concept study making the case for TAM with the [simple_ELM](https://github.com/dmricciuto/simple_ELM/tree/rootcomplexity). NOTE: check out the branch **rootcomplexity**.
 
 ### data/
-A series of Jupyter Notebooks written in Python but with source data accessible at ![Zenodo](https://zenodo.org/badge/DOI/10.5281/zenodo.7678851.svg)
+A series of Jupyter Notebooks written in Python but with source data accessible at ![Zenodo](https://zenodo.org/badge/DOI/10.5281/zenodo.7678851.svg).
 
 
 ### figures/
-
+A few figures around TAM.
 
 ### UQ/
 Performed with UQTk (v3.0.2;https://github.com/sandialabs/UQTk) under Python(2.7.5), cmake(3.11.0), and gcc(6.3.0)
 
 ### Publication/
+A PDF copy of the manuscript published in **Global Change Biology**.
