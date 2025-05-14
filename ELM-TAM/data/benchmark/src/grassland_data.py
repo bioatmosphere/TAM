@@ -1,7 +1,10 @@
+""" Download and process the grassland data from Dryad
+
+link: "https://datadryad.org/dataset/doi:10.5061/dryad.7sqv9s4vv"
+
+"""
 import pandas as pd
 from chardet import detect
-
-
 import requests
 from pathlib import Path
 import os
@@ -82,7 +85,7 @@ def download_file(url, output_path):
         print(f"Error downloading file: {e}")
         return False
 
-# Download the source data in CSV format
+# Download the source data
 url = "https://datadryad.org/dataset/doi:10.5061/dryad.7sqv9s4vv"
 download_url = "http://datadryad.org/api/v2/datasets/doi%253A10.5061%252Fdryad.7sqv9s4vv/download"
 
@@ -107,7 +110,7 @@ for zipfile in tqdm(glob("../productivity/grassland/*.zip"), desc="Unzipping"):
         else:
             fzip.extractall(path="../productivity/grassland/")
 
-# # Check the encoding of the CSV file
+# Check the encoding of the CSV file
 directory_path = "../productivity/grassland/Data_S1/"
 csv_files = glob(f"{directory_path}/*.csv")
 print(f"CSV files found: {csv_files}")
@@ -117,5 +120,5 @@ with open(csv_files[0], "rb") as f:
     encoding = result['encoding']
     print(f"Detected encoding: {encoding}")
 
-# # Read the CSV file with the detected encoding
+# Read the CSV file with the detected encoding
 # df = pd.read_csv(file_path, encoding=encoding)
