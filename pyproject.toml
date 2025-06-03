@@ -6,8 +6,20 @@ readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
     "cartopy>=0.23.0",
+    "chardet>=5.2.0",
+    "contextily>=1.6.2",
+    "geopandas>=1.0.1",
+    "geopy>=2.4.1",
+    "ipykernel>=6.29.5",
     "matplotlib>=3.9.4",
-    "numpy>=2.0.2",
+    "netcdf4>=1.7.2",
+    "numpy==1.26.2",
     "pandas>=2.2.3",
+    "pdfplumber>=0.11.6",
     "requests>=2.32.3",
+    "salib>=1.5.1",
+    "scikit-learn==1.2.2",
+    "seaborn>=0.13.2",
+    "tqdm>=4.67.1",
+    "xarray>=2024.7.0",
 ]
