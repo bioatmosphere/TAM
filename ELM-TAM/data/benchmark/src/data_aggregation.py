@@ -21,6 +21,9 @@ The data sources include:
 
 Check out https://github.com/NVIDIA-Omniverse-blueprints/earth2-weather-analytics 
     for inspirations for structure and data sources.
+
+MCP: https://claude.ai/share/1d62b6fc-271b-422f-8c0d-f9be2efdd8ed
+
 """
 
 import pandas as pd
@@ -84,6 +87,7 @@ def aggregate_data(data_files=[]):
     # Concatenate all DataFrames into a single DataFrame
     if dataframes:
         integrated_df = pd.concat(dataframes, ignore_index=True)
+        
         # Write the integrated DataFrame to a CSV file
         output_file = data_dir / 'earth' / 'aggregated_data.csv'
         # check if the file exists, if not save it
@@ -94,7 +98,9 @@ def aggregate_data(data_files=[]):
             print(f"Aggregated data saved to: {output_file}")
         else:
             print(f"File already exists: {output_file}, skipping save.")
+        
         # Write only the columns of lat and lon to a separate file
+        # this file will be used to extract data from ancillary data sources
         lat_lon_file = data_dir / 'earth' / 'lat_lon.csv'
         if not lat_lon_file.exists():
             lat_lon_df = integrated_df[['lat', 'lon']] #NOTE: duplicated lat/lon values are not removed
@@ -194,7 +200,8 @@ def plot_data_distribution(df):
 def main():
     parser = argparse.ArgumentParser(description='Aggregate data from different sources for machine learning')
     parser.add_argument('--files', '-f', nargs='+', 
-                       default=['grassland/grassland_component_df.csv', 'forc/forest_component_df.csv'],
+                       default=['grassland/grassland_component_df.csv',
+                                'forc/forest_component_df.csv'],
                        help='List of data files to aggregate (default: grassland and forest files)')
     parser.add_argument('--no-plot', action='store_true',
                        help='Skip plotting the data distribution')
