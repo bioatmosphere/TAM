@@ -25,12 +25,11 @@ The codebase consists of four main components:
 ## Primary Workflows
 
 ### ELM-TAM Benchmark Pipeline
-The main development focus is in `ELM-TAM/data/benchmark/src/`, which implements an automated data synthesis pipeline:
+The benchmark pipeline has been removed. Historical data processing focused on:
 
-- **Entry point:** `main.py` - Master pipeline script
 - **Data sources:** ForC, ILAMB, FluxNet, TerraClimate, SoilGrids
 - **Processing chain:** Raw data → standardization → integration → ML training → global application
-- **Models:** Random Forest (`RF_model.py`) and Multi-Layer Perceptron (`MLP_model.py`)
+- **Note:** Main processing scripts have been removed from `ELM-TAM/data/benchmark/src/`
 
 ### Parameter Estimation
 Located in `ELM-TAM/data/parameter/src/`:
@@ -38,10 +37,8 @@ Located in `ELM-TAM/data/parameter/src/`:
 - `tam_sites.py` - Site-specific parameter derivation
 
 ### Data Integration Scripts
-- `GherardiSala_data_2020.py` - Grassland productivity data
-- `data_integration.py` - Multi-source data synthesis
-- `soilgrids.py` - Global soil carbon data processing
-- `ancillary_data.py` - Climate and environmental data
+- **Note:** Main data integration scripts have been removed from the benchmark pipeline
+- Historical scripts included grassland productivity, soil carbon, and climate data processing
 
 ## Development Environment
 
@@ -72,7 +69,7 @@ This is a research-oriented codebase supporting the TAM conceptual framework pub
 ## Working with the Code
 
 1. Start with the main README and published papers to understand TAM concepts
-2. Use `ELM-TAM/data/benchmark/src/main.py` as the primary workflow entry point
-3. Leverage existing data processing scripts rather than recreating functionality
+2. Focus on parameter estimation workflows in `ELM-TAM/data/parameter/src/`
+3. Benchmark pipeline has been removed - historical data processing completed
 4. Follow scientific workflow - understand literature context before modifying code
 5. Pay attention to data provenance - scripts depend on specific data sources and formats
