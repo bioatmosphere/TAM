@@ -24,7 +24,9 @@ from netCDF4 import Dataset
 
 # Define a function of download the Google Sheet tab as a CSV file
 def download_csv():
-
+    # Ensure the ../data/parameter/sites/ directory exists
+    os.makedirs('../data/parameter/sites/', exist_ok=True)
+    
     # Download the Google Sheet tab as a CSV file
     # reference: https://www.perplexity.ai/search/how-to-download-a-tab-in-googl-ENw0RfhqQx6l6UnpZ7n7lw
     spreadsheet_id = '197DxMUAzWOde2NbQ4DADmo-aTRpBjVqDbCSyel7whDs'
@@ -33,31 +35,25 @@ def download_csv():
     
     response = requests.get(url)
     if response.status_code == 200:
-        with open('tam_fluxnet_sites.csv', 'wb') as f:
+        with open('../data/parameter/sites/tam_fluxnet_sites.csv', 'wb') as f:
             f.write(response.content)
-        print('Tab downloaded as CSV.')
+        print('Tab downloaded as CSV to ../data/parameter/sites/')
     else:
         print(f'Failed to download: {response.status_code}')
 
 
-# Check if the CSV file exists
-os.chdir('../data/')
-csv_file = 'tam_fluxnet_sites.csv'
-if os.path.isfile(csv_file):
-    print(f"The file '{csv_file}' exists in the directory")
-    user_input = input("\nWould you like to update the file? (y/n): ").lower()
-    if user_input == 'y':
-        print("Downloading updated version...")
-        download_csv()
-    else:
-        print("Using existing file.")
+# Check if the CSV file exists in ../data/parameter/sites/
+csv_file_path = '../data/parameter/sites/tam_fluxnet_sites.csv'
+if os.path.isfile(csv_file_path):
+    print(f"The file 'tam_fluxnet_sites.csv' exists in ../data/parameter/sites/")
+    print("Using existing file.")
 else:
-    print(f"The file '{csv_file}' does not exist in the directory")
+    print(f"The file 'tam_fluxnet_sites.csv' does not exist in ../data/parameter/sites/")
     download_csv()
     
 
 # Read the CSV file and print the first few rows
-sites_df = pd.read_csv('tam_fluxnet_sites.csv')
+sites_df = pd.read_csv(csv_file_path)
 
 # Display the first 5 rows of the data
 print("\nFirst 5 rows of the CSV file:")
@@ -95,22 +91,22 @@ gl.right_labels = False  # Remove right labels
 #Plot the data points on ELM surface data
 #----------------------------------------------------------------
 # Load the NetCDF file containing PFT data
-surfdata = Dataset('surfdata_360x720cru_simyr1850_c180216.nc','r')
-# Specify the indices of layers you want to plot
-layers_to_plot = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]  
-for i, layer in enumerate(layers_to_plot):
-    ax.pcolormesh(
-        surfdata.variables['LONGXY'][:],
-        surfdata.variables['LATIXY'][:],
-        surfdata.variables['PCT_NAT_PFT'][layer, :, :],
-        cmap='viridis',
-        alpha=0.3,  # Add transparency to distinguish layers
-        vmin=0,
-        vmax=100,  # Adjust based on your data range
-        shading='auto',
-        transform=ccrs.PlateCarree(),
-        zorder=i
-    )
+# surfdata = Dataset('surfdata_360x720cru_simyr1850_c180216.nc','r')
+# # Specify the indices of layers you want to plot
+# layers_to_plot = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]  
+# for i, layer in enumerate(layers_to_plot):
+#     ax.pcolormesh(
+#         surfdata.variables['LONGXY'][:],
+#         surfdata.variables['LATIXY'][:],
+#         surfdata.variables['PCT_NAT_PFT'][layer, :, :],
+#         cmap='viridis',
+#         alpha=0.3,  # Add transparency to distinguish layers
+#         vmin=0,
+#         vmax=100,  # Adjust based on your data range
+#         shading='auto',
+#         transform=ccrs.PlateCarree(),
+#         zorder=i
+#     )
 
 # Create a color map for unique PFTs
 unique_pfts = sites_df['PFTs'].unique()
@@ -152,21 +148,16 @@ ax.legend(
 # Adjust layout to prevent legend cutoff
 plt.tight_layout()
 
-# Set title
-ax.set_title('Distribution of FLUXNET sites for ELM-TAM sensivity', fontsize=15)
+# Set title with number of sites
+num_sites = len(sites_df)
+ax.set_title(f'Distribution of {num_sites} FLUXNET sites for ELM-TAM sensitivity and calibration', fontsize=15)
 
-# # Save and display the plot
-# os.chdir('../')
-# output_dir = 'figures'
-# if not os.path.exists(output_dir):
-#     os.makedirs(output_dir)
-
-# # Save the figure with high resolution
-# plt.savefig(f'{output_dir}/fluxnet_sites_map.pdf', 
-#             dpi=300,              # High resolution
-#             bbox_inches='tight',  # Prevent cutting off elements
-#             facecolor='white',    # White background
-#             edgecolor='none')     # No edge color
+# Save the figure with high resolution to ../data/parameter/sites/
+plt.savefig('../data/parameter/sites/fluxnet_sites_map.pdf', 
+            dpi=300,              # High resolution
+            bbox_inches='tight',  # Prevent cutting off elements
+            facecolor='white',    # White background
+            edgecolor='none')     # No edge color
 
 # Display the plot
 plt.show()

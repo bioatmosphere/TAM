@@ -23,19 +23,53 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from sklearn.model_selection import train_test_split
 
-# Configuration
-CONFIG = {
-    'path_to_olmt': '/Users/6lw/Desktop/2_models/OLMT',
-    'site_name': 'US-MOz',
-    'file_name': '20250613_US-MOz_ICB20TRCNPRDCTCBC.pkl',
-    'data_directory': '../data/sites/',
-    'figure_size': (10, 6),
-    'dpi': 300,
-    'output_format': 'pdf'
+
+# Site configurations
+SITES = {
+    'US-MOz': {
+        'file_name': '20250624_US-MOz_ICB20TRCNPRDCTCBC.pkl'
+    },
+    'US-Ho1': {
+        'file_name': '20250604_US-Ho1_ICB20TRCNPRDCTCBC.pkl'
+    },
+    # Add other sites as needed
 }
 
+# Global configuration
+CONFIG = {
+    # External dependencies
+    'paths': {
+        'olmt': '/Users/6lw/Desktop/2_models/OLMT',
+        'data_sites': 'data/parameter/sites/'
+    },
+    
+    # Current site selection
+    'current_site': 'US-MOz',
+    
+    # Plot settings
+    'plotting': {
+        'figure_size': (10, 6),
+        'dpi': 300,
+        'output_format': 'pdf'
+    }
+}
+
+# Dynamic site configuration accessor
+def get_site_config(site_name=None):
+    """Get configuration for specified site or current site."""
+    site = site_name or CONFIG['current_site']
+    if site not in SITES:
+        raise ValueError(f"Site '{site}' not found in SITES configuration")
+    
+    return {
+        'site_name': site,
+        'file_name': SITES[site]['file_name'],
+        'data_directory': CONFIG['paths']['data_sites'],
+        **CONFIG['plotting']
+    }
+
 # Add OLMT path
-sys.path.append(CONFIG['path_to_olmt'])
+sys.path.append(CONFIG['paths']['olmt'])
 import model_ELM
 
 
@@ -225,17 +259,21 @@ def plot_stacked_sensitivity_bars(data, variable_name, output_dir, plot_type='ma
         output_dir: Directory to save the plot
         plot_type: Type of plot ('main' or 'total')
     """
+    # Create subdirectory for this plot type
+    subdir = os.path.join(output_dir, plot_type)
+    os.makedirs(subdir, exist_ok=True)
+    
     # Select the appropriate sensitivity data
     if plot_type == 'main':
         sens_data = data.sens_main[variable_name]
         title = f'Main Sensitivity Indices for {variable_name}'
-        filename = f'sens_main_{variable_name}.{CONFIG["output_format"]}'
+        filename = f'sens_main_{variable_name}.{CONFIG["plotting"]["output_format"]}'
     else:  # total
         sens_data = data.sens_tot[variable_name]
         title = f'Total Sensitivity Indices for {variable_name}'
-        filename = f'sens_total_{variable_name}.{CONFIG["output_format"]}'
+        filename = f'sens_total_{variable_name}.{CONFIG["plotting"]["output_format"]}'
     
-    fig, ax = plt.subplots(figsize=CONFIG['figure_size'])
+    fig, ax = plt.subplots(figsize=CONFIG['plotting']['figure_size'])
     
     nvar = sens_data.shape[1]
     x_pos = np.arange(nvar)
@@ -282,10 +320,9 @@ def plot_stacked_sensitivity_bars(data, variable_name, output_dir, plot_type='ma
     )
     
     # Save the plot
-    os.makedirs(output_dir, exist_ok=True)
-    plt.savefig(os.path.join(output_dir, filename), 
+    plt.savefig(os.path.join(subdir, filename), 
                 bbox_inches='tight',
-                dpi=CONFIG['dpi'])
+                dpi=CONFIG['plotting']['dpi'])
     plt.close()
 
 
@@ -298,6 +335,9 @@ def plot_second_order_sensitivity(data, variable_name, output_dir):
         variable_name: Name of the variable to plot
         output_dir: Directory to save the plot
     """
+    # Create subdirectory for second-order plots
+    subdir = os.path.join(output_dir, 'second_order')
+    os.makedirs(subdir, exist_ok=True)
     nvar = data.sens_main[variable_name].shape[1]
     fig, axes = plt.subplots(1, nvar, figsize=(5*nvar, 4))
     if nvar == 1:
@@ -333,11 +373,10 @@ def plot_second_order_sensitivity(data, variable_name, output_dir):
     plt.tight_layout()
     
     # Save the figure
-    os.makedirs(output_dir, exist_ok=True)
-    filename = f'sensitivity_2nd_order_{variable_name}.{CONFIG["output_format"]}'
-    plt.savefig(os.path.join(output_dir, filename), 
+    filename = f'sens_2nd_order_{variable_name}.{CONFIG["plotting"]["output_format"]}'
+    plt.savefig(os.path.join(subdir, filename), 
                 bbox_inches='tight',
-                dpi=CONFIG['dpi'])
+                dpi=CONFIG['plotting']['dpi'])
     plt.close()
 
 
@@ -426,15 +465,16 @@ def main():
     """
     try:
         # Load sensitivity analysis data
-        print(f"Loading data for site: {CONFIG['site_name']}")
+        site_config = get_site_config()
+        print(f"Loading data for site: {site_config['site_name']}")
         loaded_data = load_sensitivity_data(
-            CONFIG['site_name'], 
-            CONFIG['file_name'], 
-            CONFIG['data_directory']
+            site_config['site_name'], 
+            site_config['file_name'], 
+            site_config['data_directory']
         )
         
         # Set up output directory
-        output_dir = os.path.join(CONFIG['data_directory'], CONFIG['site_name'])
+        output_dir = os.path.join(site_config['data_directory'], site_config['site_name'])
         
         # Process all sensitivity analysis visualizations
         print("Processing sensitivity analysis visualizations...")
