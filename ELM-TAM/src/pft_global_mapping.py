@@ -81,26 +81,26 @@ class PFTMapper:
             
         return self.surfdata.variables['LONGXY'][:], self.surfdata.variables['LATIXY'][:]
     
-    def add_tam_sites_overlay(self, ax, marker_size=50, legend=True):
+    def add_tam_sites_overlay(self, ax, marker_size=50, legend=True, filter_pft=None):
         """Add TAM sites as colored markers based on their PFT and mycorrhizal type"""
         if self.sites_data is None:
             self.load_sites_data()
-        
+
         if self.sites_data is None:
             return
-        
+
         # Define colors for different mycorrhizal types
         fungi_colors = {
             'EMF': 'red',
-            'EM': 'red', 
+            'EM': 'red',
             'AM': 'blue',
             'EM/AM': 'purple'
         }
-        
+
         # Define markers for different PFT categories
         pft_markers = {
             1: '^',  # needleleaf evergreen temperate tree
-            2: '^',  # needleleaf evergreen boreal tree  
+            2: '^',  # needleleaf evergreen boreal tree
             3: '^',  # needleleaf deciduous boreal tree
             4: 's',  # broadleaf evergreen tropical tree
             5: 's',  # broadleaf evergreen temperate tree
@@ -114,30 +114,34 @@ class PFTMapper:
             13: 'v', # C3 non-arctic grass
             14: 'v', # C4 grass
         }
-        
+
         # Plot sites grouped by mycorrhizal type and PFT
         plotted_combinations = set()
-        
+
         for _, site in self.sites_data.iterrows():
             if pd.isna(site['Lat']) or pd.isna(site['Lon']) or pd.isna(site['PFTs']):
                 continue
-                
+
             fungi_type = site['Fungi']
             pft_type = int(site['PFTs'])
-            
+
+            # Filter sites by PFT if specified
+            if filter_pft is not None and pft_type != filter_pft:
+                continue
+
             color = fungi_colors.get(fungi_type, 'gray')
             marker = pft_markers.get(pft_type, 'o')
-            
+
             # Plot the site
-            ax.scatter(site['Lon'], site['Lat'], 
+            ax.scatter(site['Lon'], site['Lat'],
                       c=color, marker=marker, s=marker_size,
                       edgecolors='black', linewidth=0.5,
                       transform=ccrs.PlateCarree(),
                       zorder=10)
-            
+
             # Track what we've plotted for legend
             plotted_combinations.add((fungi_type, color, pft_type, marker))
-        
+
         # Add legend if requested
         if legend:
             self._add_sites_legend(ax, plotted_combinations)
@@ -184,10 +188,36 @@ class PFTMapper:
                     )
         
         # Add legend to plot
-        ax.legend(handles=legend_elements, loc='upper left', 
+        ax.legend(handles=legend_elements, loc='upper left',
                  bbox_to_anchor=(0.02, 0.98), fontsize=8,
                  title='TAM Sites', title_fontsize=9)
-    
+
+    def _add_site_labels(self, ax, filter_pft=None):
+        """Add FluxNet site ID labels for TAM sites"""
+        if self.sites_data is None:
+            return
+
+        for _, site in self.sites_data.iterrows():
+            if pd.isna(site['Lat']) or pd.isna(site['Lon']) or pd.isna(site['PFTs']):
+                continue
+
+            pft_type = int(site['PFTs'])
+
+            # Filter sites by PFT if specified
+            if filter_pft is not None and pft_type != filter_pft:
+                continue
+
+            # Add site label with FluxNet ID
+            ax.annotate(site['Site ID'],
+                       (site['Lon'], site['Lat']),
+                       xytext=(8, 8), textcoords='offset points',
+                       fontsize=9, fontweight='bold',
+                       color='black',
+                       bbox=dict(boxstyle='round,pad=0.3', facecolor='white',
+                                alpha=0.8, edgecolor='black', linewidth=0.5),
+                       transform=ccrs.PlateCarree(),
+                       zorder=15)
+
     def plot_single_pft(self, pft_index, save_path=None, figsize=(12, 8), dpi=200, overlay_sites=True):
         """Create a global map for a single PFT"""
         if pft_index not in self.pft_names:
@@ -216,13 +246,15 @@ class PFTMapper:
                            transform=ccrs.PlateCarree(),
                            vmin=0, vmax=np.nanmax(pft_data))
         
-        # Add TAM sites overlay
+        # Add TAM sites overlay (only sites matching this PFT)
         if overlay_sites:
-            self.add_tam_sites_overlay(ax, marker_size=60)
+            self.add_tam_sites_overlay(ax, marker_size=60, filter_pft=pft_index, legend=False)
+            # Add site labels for corresponding PFT sites
+            self._add_site_labels(ax, filter_pft=pft_index)
         
         # Add colorbar
-        cbar = plt.colorbar(im, orientation='horizontal', 
-                           pad=0.02, shrink=0.8, aspect=30)
+        cbar = plt.colorbar(im, orientation='horizontal',
+                           pad=0.08, shrink=0.8, aspect=30)
         cbar.set_label('Percentage (%)', fontsize=12)
         
         plt.title(f"PFT {pft_index}: {self.pft_names[pft_index]}", 
@@ -476,12 +508,13 @@ def main():
         mapper.plot_vegetation_summary(save_path=output_dir / "vegetation_categories.png")
         
         # Plot a few individual PFTs as examples
-        example_pfts = [2, 4, 13, 14]  # Boreal evergreen, tropical broadleaf, C3 grass, C4 grass
-        for pft_idx in example_pfts:
-            print(f"Creating map for PFT {pft_idx}: {mapper.pft_names[pft_idx]} with TAM sites overlay")
+        #example_pfts = [1, 2, 4, 7, 13, 14]  # Boreal evergreen, tropical broadleaf, C3 grass, C4 grass
+        all_pfts = list(mapper.pft_names.keys())
+        for pft_idx in all_pfts:
+            print(f"Creating map for PFT {pft_idx}: {mapper.pft_names[pft_idx]} with corresponding TAM sites")
             safe_name = mapper.pft_names[pft_idx].replace(" ", "_").replace("/", "_")
-            mapper.plot_single_pft(pft_idx, 
-                                 save_path=output_dir / f"pft_{pft_idx:02d}_{safe_name}_with_sites.png")
+            mapper.plot_single_pft(pft_idx,
+                                 save_path=output_dir / f"pft_{pft_idx:02d}_{safe_name}_with_corresponding_sites.png")
         
         # Export statistics
         print("Exporting PFT statistics...")
